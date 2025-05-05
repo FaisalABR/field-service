@@ -53,7 +53,7 @@ pipeline {
     stage('Checkout Code') {
       steps {
         script {
-          def repoUrl = 'https://github.com/Mini-Soccer-Project/field-service.git' // diganti dengan URL repository Git
+          def repoUrl = 'https://github.com/FaisalABR/field-service.git' // diganti dengan URL repository Git
 
           checkout([$class: 'GitSCM',
             branches: [
@@ -106,7 +106,7 @@ pipeline {
           sh """
           git config --global user.name 'Jenkins CI'
           git config --global user.email 'jenkins@company.com'
-          git remote set-url origin https://${GITHUB_CREDENTIALS_USR}:${GITHUB_CREDENTIALS_PSW}@github.com/Mini-Soccer-Project/field-service.git // diganti dengan URL repository Git (komentar ini nanti dihapus)
+          git remote set-url origin https://${GITHUB_CREDENTIALS_USR}:${GITHUB_CREDENTIALS_PSW}@github.com/FaisalABR/field-service.git // diganti dengan URL repository Git (komentar ini nanti dihapus)
           git add docker-compose.yaml
           git commit -m 'Update image version to ${TARGET_BRANCH}-${currentBuild.number} [skip ci]' || echo 'No changes to commit'
           git pull origin ${TARGET_BRANCH} --rebase
@@ -128,7 +128,7 @@ pipeline {
                 git pull origin "${TARGET_BRANCH}"
             else
                 echo "Directory does not exist. Cloning repository."
-                git clone -b "${TARGET_BRANCH}" git@github.com:Mini-Soccer-Project/field-service.git "${targetDir}" // diganti dengan URL repository Git (komentar ini nanti dihapus)
+                git clone -b "${TARGET_BRANCH}" git@github.com:FaisalABR/field-service.git "${targetDir}" // diganti dengan URL repository Git (komentar ini nanti dihapus)
                 cd "${targetDir}"
             fi
 
