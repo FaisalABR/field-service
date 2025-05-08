@@ -17,7 +17,7 @@ build: ## Build the service
 
 ## Docker:
 docker-compose: ## Start the service in docker
-	docker-compose up -d --build --force-recreate
+	docker compose up -d --build --force-recreate
 
 docker-build: ## Build the Docker image with a specified tag
 	@echo "$(CYAN)Building Docker image...$(RESET)"
@@ -25,7 +25,7 @@ docker-build: ## Build the Docker image with a specified tag
 		echo "$(YELLOW)Error: Please specify the 'tag' parameter, e.g., make docker-build tag=1.0.0$(RESET)"; \
 		exit 1; \
 	fi
-	docker build --platform linux/amd64 -t sikoding20/payment-service:$(tag) .
+	docker build --platform linux/amd64 -t faisalabubakarriza/field-service:$(tag) .
 	@echo "$(GREEN)Docker image built with tag '$(tag)'$(RESET)"
 
 docker-push: ## Build the Docker image with a specified tag
@@ -34,5 +34,6 @@ docker-push: ## Build the Docker image with a specified tag
 		echo "$(YELLOW)Error: Please specify the 'tag' parameter, e.g., make docker-push tag=1.0.0$(RESET)"; \
 		exit 1; \
 	fi
-	docker push sikoding20/payment-service:$(tag)
+	docker push faisalabubakarriza/field-service:$(tag)
 	@echo "$(GREEN)Docker image built with tag '$(tag)'$(RESET)"
+

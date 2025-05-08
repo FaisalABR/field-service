@@ -9,6 +9,7 @@ pipeline {
     HOST = credentials('host')
     USERNAME = credentials('username')
     CONSUL_HTTP_URL = credentials('consul-http-url')
+    CONSUL_HTTP_KEY = 'backend/field-service'
     CONSUL_HTTP_TOKEN = credentials('consul-http-token')
     CONSUL_WATCH_INTERVAL_SECONDS = 60
   }
@@ -119,7 +120,7 @@ pipeline {
     stage('Deploy to Remote Server') {
       steps {
         script {
-          def targetDir = "/home/faisalilhami/mini-soccer-project/field-service" // diganti dengan direktori tempat menyimpan kode di server
+          def targetDir = "home/faisal/belajar-web/golang/soccer-microservices/field-service" // diganti dengan direktori tempat menyimpan kode di server
           def sshCommandToServer = """
           ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ${USERNAME}@${HOST} '
             if [ -d "${targetDir}/.git" ]; then
