@@ -91,18 +91,18 @@ func (f *FieldScheduleRepository) FindAllByFieldIDAndDate(ctx context.Context, f
 
 func (f *FieldScheduleRepository) FindByUUID(ctx context.Context, uuid string) (*models.FieldSchedule, error) {
 	var field models.FieldSchedule
-
 	err := f.db.WithContext(ctx).
-		Where("uuid = ?", uuid).First(&field).Error
-
+		Preload("Field").
+		Preload("Time").
+		Where("uuid = ?", uuid).
+		First(&field).
+		Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errorWrap.WrapError(errField.ErrFieldNotFound)
 		}
-
 		return nil, errorWrap.WrapError(errConstants.ErrSqlQuery)
 	}
-
 	return &field, nil
 }
 

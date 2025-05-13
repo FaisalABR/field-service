@@ -78,7 +78,7 @@ func (f *FieldScheduleController) GetAllWithPagination(c *gin.Context) {
 
 func (f *FieldScheduleController) GetAllByFieldIDAndDate(c *gin.Context) {
 	var params dto.FieldScheduleByFieldIDAndDateRequestParam
-	err := c.ShouldBindQuery(params)
+	err := c.ShouldBindQuery(&params)
 	if err != nil {
 		response.HttpResponse(response.ParamHTTPResp{
 			Code:  http.StatusBadRequest,
