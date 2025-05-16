@@ -109,12 +109,6 @@ func Run() {
 }
 
 func initGCS() gcs.IGCSClient {
-	// decode, err := base64.StdEncoding.DecodeString(config.Config.GCSPrivateKey)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// privateKey := string(decode)
 	stringPrivateKey := strings.ReplaceAll(config.Config.GCSPrivateKey, `\n`, "\n")
 	logrus.Infof("GCS Private Key: %s", stringPrivateKey)
 	gcsServiceAccount := gcs.ServiceAccountKeyJSON{
