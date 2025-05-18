@@ -3,8 +3,11 @@ package services
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	cache "field-service/cache/redis"
 	gcs "field-service/common/gcs"
 	"field-service/common/util"
+	"field-service/constants"
 	errConstant "field-service/constants/error"
 	"field-service/domain/dto"
 	"field-service/domain/models"
@@ -21,6 +24,7 @@ import (
 type FieldService struct {
 	repositories repositories.IRepostitoryRegistry
 	gcs          gcs.IGCSClient
+	redis        cache.IRedis
 }
 
 type IFieldService interface {
@@ -35,10 +39,12 @@ type IFieldService interface {
 func NewFieldService(
 	repositories repositories.IRepostitoryRegistry,
 	gcs gcs.IGCSClient,
+	redis cache.IRedis,
 ) IFieldService {
 	return &FieldService{
 		repositories: repositories,
 		gcs:          gcs,
+		redis:        redis,
 	}
 }
 
@@ -74,42 +80,87 @@ func (f *FieldService) GetAllWithPagination(ctx context.Context, param *dto.Fiel
 }
 
 func (f *FieldService) GetAllWithoutPagination(ctx context.Context) ([]dto.FieldResponse, error) {
-	fields, err := f.repositories.GetFieldRepository().FindAllWithoutPagination(ctx)
+	fields, err := f.redis.Get(constants.AllField)
 	if err != nil {
+		fields, err := f.repositories.GetFieldRepository().FindAllWithoutPagination(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		fieldResults := make([]dto.FieldResponse, 0, len(fields))
+		for _, field := range fields {
+			fieldResults = append(fieldResults, dto.FieldResponse{
+				UUID:         field.UUID,
+				Code:         field.Code,
+				Name:         field.Name,
+				PricePerHour: field.PricePerHour,
+				Images:       field.Images,
+				CreatedAt:    field.CreatedAt,
+				UpdatedAt:    field.UpdatedAt,
+			})
+		}
+		fieldStr, err := json.Marshal(fieldResults)
+		if err != nil {
+			logrus.Errorf("error json marshal: %v", err)
+			return nil, err
+		}
+
+		err = f.redis.Set(constants.AllField, string(fieldStr), 10)
+		if err != nil {
+			return nil, err
+		}
+
+		return fieldResults, nil
+	}
+
+	var results []dto.FieldResponse
+	err = json.Unmarshal([]byte(fields), &results)
+	if err != nil {
+		logrus.Errorf("error json unmarshal: %v", err)
 		return nil, err
 	}
 
-	fieldResults := make([]dto.FieldResponse, 0, len(fields))
-	for _, field := range fields {
-		fieldResults = append(fieldResults, dto.FieldResponse{
-			UUID:         field.UUID,
-			Code:         field.Code,
-			Name:         field.Name,
-			PricePerHour: field.PricePerHour,
-			Images:       field.Images,
-			CreatedAt:    field.CreatedAt,
-			UpdatedAt:    field.UpdatedAt,
-		})
-	}
-
-	return fieldResults, nil
+	return results, nil
 }
 
 func (f *FieldService) GetByUUID(ctx context.Context, uuid string) (*dto.FieldResponse, error) {
-	field, err := f.repositories.GetFieldRepository().FindByUUID(ctx, uuid)
+	var fieldResult dto.FieldResponse
+	fieldKey := fmt.Sprintf("field:%s", uuid)
+	fieldCache, err := f.redis.Get(fieldKey)
 	if err != nil {
-		return nil, err
+		field, err := f.repositories.GetFieldRepository().FindByUUID(ctx, uuid)
+		if err != nil {
+			return nil, err
+		}
+
+		pricePerHour := float64(field.PricePerHour)
+		fieldResult = dto.FieldResponse{
+			UUID:         field.UUID,
+			Code:         field.Code,
+			Name:         field.Name,
+			PricePerHour: util.FormatRupiah(&pricePerHour),
+			Images:       field.Images,
+			CreatedAt:    field.CreatedAt,
+			UpdatedAt:    field.UpdatedAt,
+		}
+
+		fieldStr, err := json.Marshal(fieldResult)
+		if err != nil {
+			logrus.Errorf("error json unmarshal: %v", err)
+		}
+
+		err = f.redis.Set(fieldKey, string(fieldStr), 10)
+		if err != nil {
+			return nil, err
+		}
+
+		return &fieldResult, nil
 	}
 
-	pricePerHour := float64(field.PricePerHour)
-	fieldResult := dto.FieldResponse{
-		UUID:         field.UUID,
-		Code:         field.Code,
-		Name:         field.Name,
-		PricePerHour: util.FormatRupiah(&pricePerHour),
-		Images:       field.Images,
-		CreatedAt:    field.CreatedAt,
-		UpdatedAt:    field.UpdatedAt,
+	err = json.Unmarshal([]byte(fieldCache), &fieldResult)
+	if err != nil {
+		logrus.Errorf("error json unmarshal: %v", err)
+		return nil, err
 	}
 
 	return &fieldResult, nil

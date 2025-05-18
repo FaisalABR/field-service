@@ -1,6 +1,7 @@
 package services
 
 import (
+	cache "field-service/cache/redis"
 	gcs "field-service/common/gcs"
 	"field-service/repositories"
 	fieldService "field-service/services/field"
@@ -11,6 +12,7 @@ import (
 type ServiceRegistry struct {
 	repositories repositories.IRepostitoryRegistry
 	gcs          gcs.IGCSClient
+	redis        cache.IRedis
 }
 
 type IServiceRegistry interface {
@@ -19,15 +21,16 @@ type IServiceRegistry interface {
 	GetTime() timeService.ITimeService
 }
 
-func NewServiceRegistry(repositories repositories.IRepostitoryRegistry, gcs gcs.IGCSClient) IServiceRegistry {
+func NewServiceRegistry(repositories repositories.IRepostitoryRegistry, gcs gcs.IGCSClient, redis cache.IRedis) IServiceRegistry {
 	return &ServiceRegistry{
 		repositories: repositories,
 		gcs:          gcs,
+		redis:        redis,
 	}
 }
 
 func (s *ServiceRegistry) GetField() fieldService.IFieldService {
-	return fieldService.NewFieldService(s.repositories, s.gcs)
+	return fieldService.NewFieldService(s.repositories, s.gcs, s.redis)
 }
 
 func (s *ServiceRegistry) GetFieldSchedule() fieldScheduleService.IFieldScheduleService {

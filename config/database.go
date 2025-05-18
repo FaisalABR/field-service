@@ -36,6 +36,7 @@ func InitDatabase() (*gorm.DB, error) {
 	sqlDB.SetMaxIdleConns(config.Database.MaxIdleConnection)
 	sqlDB.SetConnMaxLifetime(time.Duration(config.Database.MaxLifeTimeConnection) * time.Second)
 	sqlDB.SetConnMaxIdleTime(time.Duration(config.Database.MaxIdleTime) * time.Second)
+	logrus.Infof("Database connection established successfully")
 
 	return db, nil
 

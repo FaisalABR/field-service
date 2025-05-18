@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+	cache "field-service/cache/redis"
 	"field-service/clients"
 	gcs "field-service/common/gcs"
 	"field-service/common/response"
@@ -21,6 +23,7 @@ import (
 	"github.com/didip/tollbooth/limiter"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -53,9 +56,10 @@ var command = &cobra.Command{
 		}
 
 		gcs := initGCS()
+		rdb := initRedis()
 		client := clients.NewClientRegistry()
 		repository := repositories.NewRepositoryRegistry(db)
-		service := services.NewServiceRegistry(repository, gcs)
+		service := services.NewServiceRegistry(repository, gcs, rdb)
 		controller := controllers.NewControllerRegistry(service)
 
 		router := gin.Default()
@@ -110,7 +114,6 @@ func Run() {
 
 func initGCS() gcs.IGCSClient {
 	stringPrivateKey := strings.ReplaceAll(config.Config.GCSPrivateKey, `\n`, "\n")
-	logrus.Infof("GCS Private Key: %s", stringPrivateKey)
 	gcsServiceAccount := gcs.ServiceAccountKeyJSON{
 		Type:                    config.Config.GCSType,
 		ProjectID:               config.Config.GCSProjectID,
@@ -127,4 +130,26 @@ func initGCS() gcs.IGCSClient {
 
 	gcsClient := gcs.NewGCSClient(gcsServiceAccount, config.Config.GCSBucketName)
 	return gcsClient
+}
+
+func initRedis() cache.IRedis {
+	ctx := context.Background()
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     config.Config.Redis.Address,
+		Password: config.Config.Redis.Password,
+		DB:       config.Config.Redis.Database,
+	})
+
+	_, err := rdb.Ping(ctx).Result()
+	if err != nil {
+		logrus.Errorf("Redis connection failed: %v", err)
+		panic(err)
+	}
+
+	logrus.Infof("Redis connection successfully")
+
+	redisClient := cache.NewRedis(rdb, ctx)
+
+	return redisClient
 }

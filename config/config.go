@@ -15,6 +15,7 @@ type AppConfig struct {
 	AppEnv                     string          `json:"appEnv"`
 	SignatureKey               string          `json:"signatureKey"`
 	Database                   Database        `json:"database"`
+	Redis                      Redis           `json:"redis"`
 	RateLimiterMaxRequest      float64         `json:"rateLimiterMaxRequest"`
 	RateLimiterTimeSecond      int             `json:"rateLimiterTimeSecond"`
 	InternalService            InternalService `json:"internalService"`
@@ -42,6 +43,12 @@ type Database struct {
 	MaxIdleConnection     int    `json:"maxIdleConnection"`
 	MaxLifeTimeConnection int    `json:"maxLifeTimeConnection"`
 	MaxIdleTime           int    `json:"maxIdleTime"`
+}
+
+type Redis struct {
+	Address  string `json:"address"`
+	Password string `json:"password"`
+	Database int    `json:"database"`
 }
 
 type InternalService struct {
