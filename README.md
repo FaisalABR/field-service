@@ -1,3 +1,10 @@
+<h3>Mini Soccer Microservices</h3>
+
+- User Service [https://github.com/FaisalABR/user-service]
+- Payment Service [https://github.com/FaisalABR/payment-service]
+- Order Service [https://github.com/FaisalABR/order-service]
+- Field Service [https://github.com/FaisalABR/field-service]
+
 <h3>Field Service</h3>
 
 <h3>Description</h3>
@@ -7,7 +14,7 @@
 <h3>Directory Structure</h3>
 
 ```
-user-service
+field-service
     L cmd                            → Contains the main entry point or initial configuration of the application
     L common                         → Stores common functions used throughout the application
     L config                         → Contains application configurations such as environment variables and other settings
